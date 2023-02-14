@@ -5,3 +5,107 @@ date: "2023-02-14"
 output: html_document
 ---
 
+## Load and check data
+
+### 1. Created rmarkdown document called assignment.rmd
+```{r, echo = FALSE}
+getwd()
+list.files()
+```
+
+### 2. Load data.
+
+```{r, echo = FALSE}
+library(readr)
+library(tidyverse)
+gapminder <- read_delim("gapminder.csv.bz2")
+```
+
+The _gapminder_ data has `r nrow(gapminder)` rows and `r ncol(gapminder)` 
+columns. 
+
+### 3. Print a small sample of the data. 
+
+```{r, echo = FALSE}
+gapminder %>% 
+  sample_n(5) %>% 
+  knitr::kable()
+```
+
+Seems like there are a lot of NA values for the region column of the data set. 
+Other than that, the data looks good. 
+
+## Descriptive Statistics
+
+### 2. How many countries in the data set?
+
+```{r}
+# iso3 col
+iso_3 <- gapminder %>% 
+  select(iso3) %>% 
+  n_distinct()
+```
+
+```{r}
+# name col
+names <- gapminder %>% 
+  select(name) %>% 
+  n_distinct(.)
+```
+```{r}
+iso_2 <- gapminder %>% 
+  select (iso2) %>% 
+  n_distinct()
+```
+
+Iso3 has `r iso_3` countries. Name column has `r names` countries. Finally, 
+iso2 has `r iso_2` countries. 
+
+### (a) Find how many names are there for each iso-2 code. Are there any iso-2 
+### codes that correspond to more than one name? What are these countries?
+
+```{r}
+gapminder %>% 
+  group_by(iso2)%>% 
+  summarize(n = n_distinct(name)) %>% 
+  filter( n > 1)
+```  
+There is 1 name for iso-2 code. However, one iso-2 code has 2 names and that is
+NA (missing value).
+```{r}
+
+gapminder %>% 
+  group_by(name) %>% 
+  filter(is.na(iso2)) %>% 
+  summarize(n = n_distinct(iso2)) %>% 
+  pull(name)
+
+```
+
+### (b)
+```{r}
+gapminder %>% 
+  group_by(name) %>%
+  summarize(n = n_distinct(iso3)) %>% 
+  filter(n > 1)
+```  
+The country NA(missing value) has 4 iso-3 codes.
+```{r, echo = FALSE}
+gapminder %>% 
+  group_by(name) %>% 
+  distinct(iso3) %>% 
+  filter(is.na(name)) %>% 
+  pull(iso3)
+```  
+
+### 3. What is the minimum and maximum year in these data?
+```{r}
+gapminder %>% 
+  select(time) %>% 
+  filter(!is.na(time)) %>% 
+  summarize(min = min(time), max = max(time)) %>% 
+  pull(min, max)
+```
+
+
+
