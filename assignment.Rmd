@@ -8,14 +8,14 @@ output: html_document
 ## Load and check data
 
 ### 1. Created rmarkdown document called assignment.rmd
-```{r, echo = FALSE}
+```{r}
 getwd()
 list.files()
 ```
 
 ### 2. Load data.
 
-```{r, echo = FALSE}
+```{r message = FALSE}
 library(readr)
 library(tidyverse)
 gapminder <- read_delim("gapminder.csv.bz2")
@@ -26,7 +26,7 @@ columns.
 
 ### 3. Print a small sample of the data. 
 
-```{r, echo = FALSE}
+```{r}
 gapminder %>% 
   sample_n(5) %>% 
   knitr::kable()
@@ -43,19 +43,20 @@ Other than that, the data looks good.
 # iso3 col
 iso_3 <- gapminder %>% 
   select(iso3) %>% 
-  n_distinct()
+  n_distinct() 
 ```
 
 ```{r}
 # name col
 names <- gapminder %>% 
   select(name) %>% 
-  n_distinct(.)
+  n_distinct(.) 
 ```
 ```{r}
 iso_2 <- gapminder %>% 
   select (iso2) %>% 
-  n_distinct()
+  n_distinct() 
+  
 ```
 
 Iso3 has `r iso_3` countries. Name column has `r names` countries. Finally, 
@@ -68,35 +69,42 @@ iso2 has `r iso_2` countries.
 gapminder %>% 
   group_by(iso2)%>% 
   summarize(n = n_distinct(name)) %>% 
-  filter( n > 1)
+  filter( n > 1) %>% 
+  knitr::kable()
 ```  
-There is 1 name for iso-2 code. However, one iso-2 code has 2 names and that is
-NA (missing value).
+
 ```{r}
 
 gapminder %>% 
   group_by(name) %>% 
   filter(is.na(iso2)) %>% 
   summarize(n = n_distinct(iso2)) %>% 
-  pull(name)
-
+  knitr::kable()
 ```
 
-### (b)
+
+There is 1 name for each iso-2 code. However, one iso-2 code has 2 names and that is
+NA (missing value).
+
+### (b) Now repeat the same for name and iso3-code. Are there country names 
+### that have more than one iso3-code? What are these countries?
+
 ```{r}
 gapminder %>% 
   group_by(name) %>%
   summarize(n = n_distinct(iso3)) %>% 
-  filter(n > 1)
+  filter(n > 1) %>% 
+  knitr::kable()
 ```  
-The country NA(missing value) has 4 iso-3 codes.
-```{r, echo = FALSE}
+```{r}
 gapminder %>% 
   group_by(name) %>% 
   distinct(iso3) %>% 
-  filter(is.na(name)) %>% 
-  pull(iso3)
+  filter(is.na(name)) %>%
+  knitr::kable()
+  
 ```  
+The country NA(missing value) has 4 iso-3 codes.
 
 ### 3. What is the minimum and maximum year in these data?
 ```{r}
@@ -107,5 +115,329 @@ gapminder %>%
   pull(min, max)
 ```
 
+## CO2 Emissions
+
+### 1. How many missing co2 emissions are there for each year? Anaylyze both
+### missing CO2 and co2_pc. Which years have most missing data?
+
+```{r}
+# CO2 column
+missing_co2 <- gapminder %>% 
+  group_by(time) %>% 
+  filter(is.na(co2)) %>% 
+  count(co2) %>%
+  head(10) %>% 
+  knitr::kable() %>% 
+  print()
+```
+
+```{r}
+# co2_PC column 
+missing_co2_pc <- gapminder %>% 
+  group_by(time) %>% 
+  filter(is.na(co2_PC)) %>% 
+  count(co2_PC) %>% 
+  head(10) %>% 
+  knitr::kable() %>% 
+  print()
+```
+
+The amount of missing data is the same for both  columns. Starts off in as 60 
+missing values in 1960. Then trickles down to about 13 missing values in 2016.
+
+```{r}
+most_missing <- gapminder %>% 
+  group_by(time) %>% 
+  filter(is.na(co2_PC)) %>% 
+  count(co2_PC) %>%
+  arrange(desc(n)) %>% 
+  head(3) %>% 
+  pull(time) %>%
+  print()
+```
+
+### 2. Make a plot of total CO2 emissions over time for U.S., China, and India. 
+### Add a few countries of your choice. Explain what do you see. 
+
+```{r}
+co2_plot <- gapminder %>%
+  group_by(time,name) %>% 
+  filter(name == "India"|
+           name == "China"| 
+           name == "United States of America"|
+           name == "Canada" |
+           name == "Aruba", 
+         !is.na(co2))
+
+  ggplot(data = co2_plot,
+         aes(x = time, y = co2,
+             group = name,
+             color = name)) + 
+  geom_line(linewidth = 0.5) +
+    labs(title = "Total CO2 Over time",
+         x = "Time",
+         y = "Total CO2")
+  
+```
+
+It looks like China had a huge boost of total co2 in 2000 and exponentially rose.
+United Sates takes 2nd place but has a more constant co2 levels. Other countries
+such as Aruba, Canada, and India have much lower co2 levels. Could be based on 
+their lower co2 production based on manufacturing and other societal practices. 
+
+### Now let's analyze the CO2 emissions per capita (co2_PC). Make a similar plot 
+### of the same countries. What does this figure suggest?
+```{r}
+co2_PC_plot <- gapminder %>%
+  group_by(time,name) %>% 
+  filter(name == "India"|
+           name == "China"| 
+           name == "United States of America"|
+           name == "Canada" |
+           name == "Aruba", 
+         !is.na(co2))
+
+  ggplot(data = co2_PC_plot,
+         aes(x = time, y = co2_PC,
+             group = name,
+             color = name)) + 
+  geom_line(linewidth = 0.5) +
+    labs(title = "Total CO2 Per Capita Over time",
+         x = "Time",
+         y = "Total CO2")
+  
+```
 
 
+All co2 levels per capita are nearly the same an constant except for Aruba but
+it takes a nose dive to equal out to similar levels as other countries. Figure
+suggests that this is taking into account based on population. Although co2
+levels are rising, population keeps it at a low, constant average. 
+
+### 4. Compute average CO2 emissions per capita across the continents (assume
+### region is the same as continent). Comment what do you see. 
+
+```{r}
+ gapminder %>% 
+  group_by(region,time) %>% 
+  filter(!is.na(co2_PC), !is.na(name), time == 2016) %>% 
+  summarize(mean_co2_PC = mean(co2_PC)) %>% 
+  knitr::kable()
+```
+
+
+Africa has the lowest co2 per capita. Americas comes next. And the two highest
+are Europe and Oceania. 
+
+### 5. Make a barplot where you show the previous results-average CO2 emissions
+### per capita across continents in 1960 and 2016. 
+
+```{r}
+
+
+gapminder %>% 
+  group_by(region, time) %>% 
+  filter(!is.na(co2_PC), !is.na(name), time == 2016 | time == 1960) %>% 
+  reframe(mean = mean(co2_PC)) %>% 
+  ggplot(aes(x = region, y = mean, fill = as.factor(time))) + 
+    geom_bar(stat = "identity", position = "dodge") + 
+  labs(x = "continent",
+       y = "Average CO2 per capita",
+       fill = "Year")
+  
+
+```
+
+### 6. Which countries are the three largest, and three smallest CO2 emiitters
+### (in terms of CO2 per capita) in 2019 for each continent? (Used 2016 instead)
+
+```{r}
+gapminder %>% 
+  group_by(region) %>% 
+   filter(time == 2016, !is.na(co2_PC), !is.na(region), !is.na(name)) %>% 
+  filter(rank(desc(co2_PC)) <= 3) %>% 
+  arrange(region) %>% 
+  select(region, name, co2_PC) %>% 
+  knitr::kable()
+```
+The _top 3_ emitters for each continent are:
+
+- Africa - Libya, Seychelles, and South Africa
+- Americas - Canada, Trinidad and Tobago, U.S.A.
+- Asia - Bahrain, Kuwait, Qatar
+- Europe - Faroe Islands, Gibraltar, Luxembourg
+- Oceania - Australia, New caledonia, Palau
+
+```{r}
+gapminder %>% 
+  group_by(region) %>% 
+   filter(time == 2016, !is.na(co2_PC), !is.na(region), !is.na(name)) %>% 
+  filter(rank(co2_PC) <= 3)  %>% 
+  arrange(region) %>% 
+  select(region, name, co2_PC) %>% 
+  knitr::kable()
+```
+
+The 3 lowest co2 emitters per capita are:
+
+- Africa - Burundi, Congo, Somalia
+- Americas - Honduras, Haiti, Nicaragua
+- Asia - Afghanistan, Nepal, Yemen
+- Europe - Albania, Liechtenstein, Moldova
+- Oceania - Kiribati, Solomon Islands, Vanuatu
+
+
+
+
+## GPD per Capita
+
+### 1. Make a scatterplot of GPD per capita versus life expectancy by country, 
+### using data from 1960. Make the point size dependent on the country size, 
+### and color those according according to the continent. Feel free to adjust 
+### the plot in other ways to make it better. Comment what you see.
+
+```{r}
+library(tidyverse)
+gapminder %>% 
+  group_by(name) %>% 
+  filter(!is.na(lifeExpectancy), !is.na(GDP_PC), time == 1960) %>% 
+  ggplot(aes(x = GDP_PC, y = lifeExpectancy, color = region)) +
+  geom_point(aes(size = totalPopulation)) + 
+  labs( x = "GPD per capita",
+        y = "Life Expectancy",
+        size = "Total Population", 
+        color = "Country by Region",
+        title = "GDP per Capita by Country 1960")
+```
+
+Countries with low GDP per capita have a lower life expectancy. These countries
+include mostly of Asia and Africa. Countries with with higher GDP per capita
+have a higher life expectancy. This includes countries from mostly Americas and
+Europe with the exception of one Oceania country. 
+
+### Make a similar plot, but this time use 2019 data only. 
+
+```{r}
+library(tidyverse)
+gapminder %>% 
+  group_by(name) %>% 
+  filter(!is.na(region), !is.na(lifeExpectancy), !is.na(GDP_PC), time == 2019) %>% 
+  ggplot(aes(x = GDP_PC, y = lifeExpectancy, color = region)) +
+  geom_point(aes(size = totalPopulation)) + 
+  labs( x = "GPD per capita",
+        y = "Life Expectancy",
+        size = "Total Population", 
+        color = "Country by Region",
+        title = "GDP per capita by Country 2019")
+```
+
+### 3. Compare these two plots and comment what do you see. How as the world 
+### developed through the last 60 years?
+
+Africa's life expectancy and GPD has somewhat stayed the same as well as Asia. 
+Asia, however, has a higher life expectancy now. American generally stayed the
+same. Europe has a well but it seems some countries increased in GDP per capita. 
+
+### 4. Compute the average life expectancy for each continent in 1960 and 2019. 
+### Do the results fit with what do you see on the figures?
+
+```{r}
+gapminder %>% 
+  group_by(region, time) %>% 
+  filter(!is.na(lifeExpectancy), time == 1960 | time == 2019) %>% 
+  summarize(avg_LE = mean(lifeExpectancy)) %>% 
+  knitr::kable()
+  
+```
+
+There is a definite growth of average of life expectancy for all continents. In
+my comments, I said it looked like Africa didn't grow in life expectancy.
+Further looking and comparing the two, the scale is much different. Although 
+it looks the same, Africa did in fact grow in life expectancy. 
+
+### Compute the average LE growth from 1960 - 2019 across the continents. Show
+### the results in order of growth. Explain what do you see. 
+
+```{r}
+gapminder %>% 
+  group_by(region) %>% 
+  mutate(growth_le = lifeExpectancy - lag(lifeExpectancy)) %>% 
+  filter(!is.na(growth_le), 
+         !is.na(region)) %>% 
+  summarize(avg_growth_le = mean(growth_le)) %>% 
+  knitr::kable()
+
+```
+
+Oceanic countries had a higher average growth in life expectancy. 
+Africa, Asia, and Europe did not change much. Americas comes in at a hot second
+in average growth of life expectancy. 
+
+### 6. Show the histogram of GPD per capita for years of 1960 and 2019. Try
+### to put both histograms on the same graph, see how well you can do it!
+
+```{r}
+gapminder %>% 
+  filter(!is.na(GDP_PC), !is.na(GDP_PC), time == 1960 | time == 2019) %>% 
+  ggplot(aes(x = GDP_PC, fill = factor(time))) +
+  geom_histogram(bins = 30, position = "dodge") +
+  labs(fill = "Year")
+```
+
+### What was the ranking of US in terms of life expectancy in 1960 and in 2019?
+### (When counting from the top.)
+
+```{r}
+gapminder %>% 
+  filter(!is.na(lifeExpectancy), 
+         !is.na(name), 
+         time == 1960) %>% 
+  mutate(rank = rank(desc(lifeExpectancy))) %>% 
+  filter(name == "United States of America") %>% 
+  select(name, rank) %>% 
+  knitr::kable()
+```
+```{r}
+ gapminder %>% 
+  filter(!is.na(lifeExpectancy), 
+         !is.na(name), 
+         time == 2019) %>% 
+  mutate(rank = rank(desc(lifeExpectancy))) %>% 
+  filter(name == "United States of America") %>% 
+  select(name, rank) %>% 
+  knitr::kable()
+```
+
+
+### 8. What about the relative rank divided by the corresponding number of 
+countries that have LE data in the corresponding year?
+
+```{r}
+gapminder %>% 
+  filter(!is.na(lifeExpectancy), 
+         !is.na(name), 
+         time == 1960) %>% 
+  mutate(rank = rank(desc(lifeExpectancy))) %>% 
+  mutate(num_countries = n_distinct(name)) %>% 
+  filter(name == "United States of America") %>% 
+  summarize( rel_rank = rank/num_countries) %>%
+  knitr::kable()
+  
+```
+```{r}
+gapminder %>% 
+  filter(!is.na(lifeExpectancy), 
+         !is.na(name), 
+         time == 2019) %>% 
+  mutate(rank = rank(desc(lifeExpectancy))) %>% 
+  mutate(num_countries = n_distinct(name)) %>% 
+  filter(name == "United States of America") %>% 
+  summarize(rel_rank = rank/num_countries) %>% 
+  knitr::kable()
+  
+```
+
+### How long did you spent on this assignment?
+
+**I lost track but I think I spent about anywhere from 6-10 hours on this 
+assignment**
