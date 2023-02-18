@@ -185,7 +185,7 @@ United Sates takes 2nd place but has a more constant co2 levels. Other countries
 such as Aruba, Canada, and India have much lower co2 levels. Could be based on 
 their lower co2 production based on manufacturing and other societal practices. 
 
-### Now let's analyze the CO2 emissions per capita (co2_PC). Make a similar plot 
+### 3. Now let's analyze the CO2 emissions per capita (co2_PC). Make a similar plot 
 ### of the same countries. What does this figure suggest?
 ```{r}
 co2_PC_plot <- gapminder %>%
