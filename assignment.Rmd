@@ -355,17 +355,20 @@ my comments, I said it looked like Africa didn't grow in life expectancy.
 Further looking and comparing the two, the scale is much different. Although 
 it looks the same, Africa did in fact grow in life expectancy. 
 
-### Compute the average LE growth from 1960 - 2019 across the continents. Show
+### Compute the average LE growth from 1960 and 2019 across the continents. Show
 ### the results in order of growth. Explain what do you see. 
 
 ```{r}
-gapminder %>% 
+ gapminder %>% 
+  group_by(time, region) %>% 
+  filter(!is.na(time),
+         !is.na(region), !is.na(lifeExpectancy), time == 1960 | time == 2019) %>% 
+  summarize(avg_ov_time = mean(lifeExpectancy)) %>% 
   group_by(region) %>% 
-  mutate(growth_le = lifeExpectancy - lag(lifeExpectancy)) %>% 
-  filter(!is.na(growth_le), 
-         !is.na(region)) %>% 
-  summarize(avg_growth_le = mean(growth_le)) %>% 
-  knitr::kable()
+  summarize(avg_growth_le = avg_ov_time - lag(avg_ov_time)) %>% 
+  filter(!is.na(avg_growth_le)) %>% 
+  arrange(avg_growth_le)
+
 
 ```
 
