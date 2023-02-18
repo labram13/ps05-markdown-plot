@@ -372,9 +372,11 @@ it looks the same, Africa did in fact grow in life expectancy.
 
 ```
 
-Oceanic countries had a higher average growth in life expectancy. 
-Africa, Asia, and Europe did not change much. Americas comes in at a hot second
-in average growth of life expectancy. 
+Africa and Asia had the highest growth in average life expectancy. Seems
+as though the more underdeveloped countries caught up with standards of
+Americas and Oceania which also had a growth but not as significant.
+Europe had the lowest growth average but based on data we've already looked at, 
+they have already had a pretty high life expectancy. 
 
 ### 6. Show the histogram of GPD per capita for years of 1960 and 2019. Try
 ### to put both histograms on the same graph, see how well you can do it!
