@@ -363,9 +363,9 @@ it looks the same, Africa did in fact grow in life expectancy.
   group_by(time, region) %>% 
   filter(!is.na(time),
          !is.na(region), !is.na(lifeExpectancy), time == 1960 | time == 2019) %>% 
-  summarize(avg_ov_time = mean(lifeExpectancy)) %>% 
+  reframe(avg_ov_time = mean(lifeExpectancy)) %>% 
   group_by(region) %>% 
-  summarize(avg_growth_le = avg_ov_time - lag(avg_ov_time)) %>% 
+  reframe(avg_growth_le = avg_ov_time - lag(avg_ov_time)) %>% 
   filter(!is.na(avg_growth_le)) %>% 
   arrange(avg_growth_le)
 
